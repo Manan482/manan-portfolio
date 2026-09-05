@@ -1,3 +1,10 @@
+export const getAssetPath = (path) => {
+  const base = import.meta.env.BASE_URL || '/';
+  const cleanBase = base.endsWith('/') ? base : `${base}/`;
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${cleanBase}${cleanPath}`;
+};
+
 export const personalInfo = {
   name: "Manan A Mahajan",
   shortName: "Manan",
@@ -15,6 +22,7 @@ export const personalInfo = {
   location: "Hubballi, Karnataka, India",
   college: "Vellore Institute of Technology (VIT), Vellore",
   cgpa: "7.87 / 10",
+  resumeUrl: getAssetPath('assets/Manan_Mahajan_Resume.pdf'),
   socials: {
     whatsapp: "https://wa.me/916364533214?text=Hi%20Manan,%20I%20saw%20your%20portfolio%20and%20would%20love%20to%20connect!",
     linkedin: "https://www.linkedin.com/in/manan-mahajan-30bb0228a/",
@@ -23,13 +31,13 @@ export const personalInfo = {
     researchPaper: "https://www.ijprems.com/ijprems-paper/international-vs-national-learning-pros-and-cons"
   },
   images: {
-    heroReal: "/assets/manan_hero_real.png",
-    heroIronMan: "/assets/manan_hero_ironman.png",
-    cutout: "/assets/manan_hero_real.png",
-    studio: "/assets/manan_portrait_studio.jpg",
-    topAngle: "/assets/manan_portrait_topangle.jpg",
-    avatar: "/assets/manan_avatar_3d.jpg",
-    avatar3d: "/assets/manan_avatar_3d.jpg"
+    heroReal: getAssetPath('assets/manan_hero_real.png'),
+    heroIronMan: getAssetPath('assets/manan_hero_ironman.png'),
+    cutout: getAssetPath('assets/manan_hero_real.png'),
+    studio: getAssetPath('assets/manan_portrait_studio.jpg'),
+    topAngle: getAssetPath('assets/manan_portrait_topangle.jpg'),
+    avatar: getAssetPath('assets/manan_avatar_3d.jpg'),
+    avatar3d: getAssetPath('assets/manan_avatar_3d.jpg')
   }
 };
 

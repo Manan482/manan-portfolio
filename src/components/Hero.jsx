@@ -409,7 +409,7 @@ export default function Hero() {
             </button>
 
             <a
-              href="/assets/Manan_Mahajan_Resume.pdf"
+              href={personalInfo.resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => playClickSound()}
@@ -511,7 +511,7 @@ export default function Hero() {
 
           {/* BASE LAYER (Default: Manan in Navy Shirt) */}
           <img 
-            src="/assets/manan_hero_real.png"
+            src={personalInfo.images.heroReal}
             alt="Manan Mahajan"
             className="h-full w-auto object-contain object-bottom filter contrast-105 brightness-105 drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] rounded-b-none pointer-events-none"
             style={{
@@ -530,7 +530,7 @@ export default function Hero() {
             }}
           >
             <img 
-              src="/assets/manan_hero_ironman.png"
+              src={personalInfo.images.heroIronMan}
               alt="Manan Iron Man Suit"
               className="h-full w-auto object-contain object-bottom filter contrast-110 brightness-110 drop-shadow-[0_30px_70px_rgba(56,189,248,0.7)] rounded-b-none"
               style={{
