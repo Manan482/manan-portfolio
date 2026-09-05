@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Inter', sans-serif;
+  }
+
+  body {
+    background-color: #09090b;
+    color: #ffffff;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: #facc15;
+    color: #000000;
+  }
+}
+
+/* Custom Outlined Text */
+.text-stroke-white {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.9);
+  color: transparent;
+}
+
+.text-stroke-yellow {
+  -webkit-text-stroke: 2px #f4c400;
+  color: transparent;
+}
+
+.text-stroke-black {
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.8);
+  color: transparent;
+}
+
+.text-stroke-dark {
+  -webkit-text-stroke: 2px rgba(24, 24, 27, 0.4);
+  color: transparent;
+}
+
+/* Marching Ants Animated Border */
+@keyframes marchingAnts {
+  0% {
+    background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+  }
+  100% {
+    background-position: 40px 0, 100% 40px, calc(100% - 40px) 100%, 0 calc(100% - 40px);
+  }
+}
+
+.marching-ants-border {
+  background-image: 
+    linear-gradient(90deg, #3b82f6 50%, transparent 50%),
+    linear-gradient(180deg, #3b82f6 50%, transparent 50%),
+    linear-gradient(90deg, #3b82f6 50%, transparent 50%),
+    linear-gradient(180deg, #3b82f6 50%, transparent 50%);
+  background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+  background-size: 16px 2px, 2px 16px, 16px 2px, 2px 16px;
+  background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+  animation: marchingAnts 1.2s linear infinite;
+}
+
+/* Noise texture */
+.bg-noise {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(18, 18, 22, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* 3D Transform Utilities */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #facc15;
+}
+
+/* Vertical Text Roll Animation */
+@keyframes rollText {
+  0%, 20% { transform: translateY(0%); }
+  25%, 45% { transform: translateY(-25%); }
+  50%, 70% { transform: translateY(-50%); }
+  75%, 95% { transform: translateY(-75%); }
+  100% { transform: translateY(0%); }
+}
+
+.animate-roll {
+  animation: rollText 8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
