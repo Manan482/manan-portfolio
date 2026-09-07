@@ -131,17 +131,17 @@ export const projects = [
     live: "https://github.com/Manan482/Sneakom"
   },
   {
-    id: "microservices-banking",
-    title: "Enterprise Banking Microservices Engine",
-    category: "Distributed Backend Systems",
-    tag: "Java 21 • Spring Boot • Docker",
-    accentColor: "#8b5cf6",
-    summary: "Resilient financial microservice architecture with transactional integrity, MongoDB persistence, and JUnit automation.",
-    description: "Architected a scalable enterprise microservices backend leveraging Spring Boot and MongoDB. Built isolated REST APIs, transaction isolation, comprehensive JUnit unit testing suites, and automated Dockerized service mesh deployment for high-reliability financial operations.",
-    tech: ["Java 21", "Spring Boot", "Spring Data", "MongoDB", "JUnit", "Docker", "AWS"],
-    highlight: "Sub-50ms Transaction Processing & High-Throughput REST APIs",
-    github: "https://github.com/Manan482",
-    live: "https://github.com/Manan482"
+    id: "park-share",
+    title: "Park Share - Smart Community Parking Platform",
+    category: "Full-Stack & Smart Mobility System",
+    tag: "React • Node.js • Geolocation • Cloud",
+    accentColor: "#10b981",
+    summary: "Smart peer-to-peer parking reservation and space sharing platform connecting drivers with available private and commercial parking spots.",
+    description: "Architected a full-stack smart parking ecosystem to alleviate urban parking congestion and optimize space utilization. Features real-time slot discovery, interactive map coordinates, dynamic spot reservation workflows, and automated booking management.",
+    tech: ["React.js", "Node.js", "Express.js", "MongoDB", "REST APIs", "Geolocation", "Tailwind CSS"],
+    highlight: "Real-Time Slot Discovery, Dynamic Booking Engine & Geolocation Mapping",
+    github: "https://github.com/Manan482/Park-Share",
+    live: "https://github.com/Manan482/Park-Share"
   }
 ];
 
