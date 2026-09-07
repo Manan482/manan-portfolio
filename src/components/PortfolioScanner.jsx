@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import gsap from 'gsap';
 import { personalInfo } from '../data/portfolioData';
 import { playHoverSound, playClickSound, playScannerSound } from '../utils/soundEffects';
 import { 
@@ -8,18 +7,16 @@ import {
   Sparkles, 
   Eye, 
   Activity, 
-  Crosshair,
+  Crosshair, 
   Maximize2,
-  Play,
-  Pause,
+  Play, 
+  Pause, 
+  Cpu, 
+  Cloud, 
   Radio,
-  Cpu,
-  Server,
-  Database,
-  Cloud,
   Layers,
   Zap,
-  Network
+  ShieldCheck
 } from 'lucide-react';
 
 const PALETTE = [
@@ -33,7 +30,7 @@ const PALETTE = [
 
 const SCAN_MODES = [
   { id: 'hd', label: 'Crystal HD', icon: Eye, description: 'Direct unblurred optical reveal' },
-  { id: 'cyber', label: 'Cyber Matrix', icon: Activity, description: 'High-contrast chromatic HUD' },
+  { id: 'cyber', label: 'Cyber Matrix', icon: Activity, description: 'High-contrast chromatic HUD & scanlines' },
   { id: 'biometric', label: 'Neural Mesh', icon: Crosshair, description: 'Biometric telemetry & feature detection' },
 ];
 
@@ -43,26 +40,30 @@ export default function PortfolioScanner() {
   const [activeMode, setActiveMode] = useState('hd');
   const [apertureSize, setApertureSize] = useState(280);
   const [isHovered, setIsHovered] = useState(false);
-  const [biometricStatus, setBiometricStatus] = useState('CALM_STANCE // SDE ARCHITECT');
-  const [stageDimensions, setStageDimensions] = useState({ width: 420, height: 560 });
+  const [biometricStatus, setBiometricStatus] = useState('AUTONOMOUS SCAN // DIAGNOSTIC ACTIVE');
+  const [coordsDisplay, setCoordsDisplay] = useState({ x: 210, y: 240 });
+  const [stageSize, setStageSize] = useState({ width: 420, height: 560 });
 
   const currentColor = PALETTE[colorIndex];
 
   const containerRef = useRef(null);
   const stageRef = useRef(null);
-  const bgTextRef = useRef(null);
+  const lensRef = useRef(null);
+  const innerImgRef = useRef(null);
   const canvasRef = useRef(null);
+  const bgTextRef = useRef(null);
   const circuitRef = useRef(null);
 
   // Parallax background mouse tracking
   const [bgOffset, setBgOffset] = useState({ x: 0, y: 0 });
 
-  // Smooth lerp coordinates for laggy buttery smooth motion
-  const targetPos = useRef({ x: 210, y: 280 });
-  const currentPos = useRef({ x: 210, y: 280 });
+  // Smooth position tracking & Autonomous scan state
+  const isInteracting = useRef(false);
+  const idleTimer = useRef(null);
+  const currentPos = useRef({ x: 210, y: 240 });
+  const targetPos = useRef({ x: 210, y: 240 });
+  const stageDimensions = useRef({ width: 420, height: 560 });
   const animFrameId = useRef(null);
-
-  const [coords, setCoords] = useState({ x: 210, y: 280 });
 
   // 1. Autonomous Spectrum Transition Timer (Cycles every 4.2 seconds)
   useEffect(() => {
@@ -75,17 +76,99 @@ export default function PortfolioScanner() {
     return () => clearInterval(interval);
   }, [isAutoCycling]);
 
-  // Smooth background color morphing with GSAP
+  // 2. Measure stage dimensions dynamically with ResizeObserver
   useEffect(() => {
-    if (!containerRef.current) return;
-    gsap.to(containerRef.current, {
-      backgroundColor: PALETTE[colorIndex].hex,
-      duration: 1.4,
-      ease: 'power2.inOut',
-    });
-  }, [colorIndex]);
+    if (!stageRef.current) return;
 
-  // 2. Heavyweight 60fps Cyber Particle & Radar Sweep Canvas
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          stageDimensions.current = { width, height };
+          setStageSize({ width, height });
+        }
+      }
+    });
+
+    ro.observe(stageRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // 3. High-Performance GPU-Driven Animation Loop with Autonomous Patrol
+  useEffect(() => {
+    let patrolAngle = 0;
+    let frameCount = 0;
+
+    const render = () => {
+      const stageW = stageDimensions.current.width || 420;
+      const stageH = stageDimensions.current.height || 560;
+
+      // Autonomous Patrol when user is not directly interacting
+      if (!isInteracting.current) {
+        patrolAngle += 0.022;
+        targetPos.current = {
+          x: stageW * 0.5 + Math.sin(patrolAngle * 0.7) * (stageW * 0.16),
+          y: stageH * 0.44 + Math.sin(patrolAngle) * (stageH * 0.28),
+        };
+      }
+
+      // Responsive lerp: fast & crisp (0.28) on cursor, smooth & graceful (0.05) on auto
+      const lerp = isInteracting.current ? 0.28 : 0.05;
+      currentPos.current.x += (targetPos.current.x - currentPos.current.x) * lerp;
+      currentPos.current.y += (targetPos.current.y - currentPos.current.y) * lerp;
+
+      const curX = currentPos.current.x;
+      const curY = currentPos.current.y;
+      const half = apertureSize / 2;
+
+      // Calculate lens top-left relative to stage
+      const lensX = curX - half;
+      const lensY = curY - half;
+
+      // Direct GPU transform update on DOM nodes (bypasses React re-render overhead!)
+      if (lensRef.current) {
+        lensRef.current.style.transform = `translate3d(${lensX}px, ${lensY}px, 0)`;
+      }
+      if (innerImgRef.current) {
+        // Counter-translate the sharp image so it precisely matches the background image
+        innerImgRef.current.style.transform = `translate3d(${-lensX}px, ${-lensY}px, 0)`;
+      }
+
+      // Throttle telemetry text & coordinates update to ~15fps for maximum performance
+      frameCount++;
+      if (frameCount % 4 === 0) {
+        setCoordsDisplay({
+          x: Math.round(curX),
+          y: Math.round(curY),
+        });
+
+        if (isInteracting.current) {
+          if (curY < stageH * 0.35) {
+            setBiometricStatus('OPTIC_RECOGNISED // VIT CSE 27');
+          } else if (curY < stageH * 0.65) {
+            setBiometricStatus('CORE_ENGINE // JAVA • SPRING • AWS');
+          } else {
+            setBiometricStatus('SDE ARCHITECT // 99.99% SYSTEM HEALTH');
+          }
+        } else {
+          if (curY < stageH * 0.35) {
+            setBiometricStatus('AUTONOMOUS SCAN // FACIAL RECOGNITION');
+          } else if (curY < stageH * 0.65) {
+            setBiometricStatus('AUTONOMOUS SCAN // ARCHITECTURE STACK');
+          } else {
+            setBiometricStatus('AUTONOMOUS SCAN // SDE PROFILE TELEMETRY');
+          }
+        }
+      }
+
+      animFrameId.current = requestAnimationFrame(render);
+    };
+
+    animFrameId.current = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(animFrameId.current);
+  }, [apertureSize]);
+
+  // 4. Background Cyber Radar & Particle Sweep Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -103,43 +186,43 @@ export default function PortfolioScanner() {
     window.addEventListener('resize', handleResize);
 
     // Particle nodes
-    const particleCount = 55;
+    const particleCount = 45;
     const particles = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.75,
-      vy: (Math.random() - 0.5) * 0.75,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
       radius: Math.random() * 2 + 1.2,
       pulse: Math.random() * Math.PI,
     }));
 
     let radarAngle = 0;
 
-    const render = () => {
+    const renderCanvas = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // A. Draw sweeping radar cone from center
-      radarAngle += 0.015;
+      // Sweeping radar cone from center
+      radarAngle += 0.014;
       const centerX = width / 2;
       const centerY = height / 2;
-      const radarRadius = Math.max(width, height) * 0.6;
+      const radarRadius = Math.max(width, height) * 0.55;
 
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, radarRadius, radarAngle - 0.35, radarAngle);
+      ctx.arc(centerX, centerY, radarRadius, radarAngle - 0.32, radarAngle);
       ctx.closePath();
-      const radarGrad = ctx.createRadialGradient(centerX, centerY, 40, centerX, centerY, radarRadius);
-      radarGrad.addColorStop(0, 'rgba(0, 0, 0, 0.08)');
+      const radarGrad = ctx.createRadialGradient(centerX, centerY, 30, centerX, centerY, radarRadius);
+      radarGrad.addColorStop(0, 'rgba(0, 0, 0, 0.07)');
       radarGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = radarGrad;
       ctx.fill();
       ctx.restore();
 
-      // B. Draw particle connection links
+      // Particle connection links
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
-        p1.pulse += 0.03;
+        p1.pulse += 0.025;
 
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
@@ -147,9 +230,9 @@ export default function PortfolioScanner() {
           const dy = p1.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 145) {
+          if (dist < 140) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(0, 0, 0, ${0.16 * (1 - dist / 145)})`;
+            ctx.strokeStyle = `rgba(0, 0, 0, ${0.14 * (1 - dist / 140)})`;
             ctx.lineWidth = 1;
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -158,7 +241,7 @@ export default function PortfolioScanner() {
         }
       }
 
-      // C. Draw particle nodes
+      // Particle nodes
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -169,16 +252,16 @@ export default function PortfolioScanner() {
         if (p.y > height) p.y = 0;
 
         ctx.beginPath();
-        const r = p.radius + Math.sin(p.pulse) * 0.5;
+        const r = p.radius + Math.sin(p.pulse) * 0.4;
         ctx.arc(p.x, p.y, Math.max(0.5, r), 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.fill();
       });
 
-      animationId = requestAnimationFrame(render);
+      animationId = requestAnimationFrame(renderCanvas);
     };
 
-    render();
+    renderCanvas();
 
     return () => {
       cancelAnimationFrame(animationId);
@@ -186,56 +269,7 @@ export default function PortfolioScanner() {
     };
   }, []);
 
-  // 3. Update stage dimensions dynamically
-  useEffect(() => {
-    const updateSize = () => {
-      if (stageRef.current) {
-        const w = stageRef.current.offsetWidth || 420;
-        const h = stageRef.current.offsetHeight || 560;
-        setStageDimensions({ width: w, height: h });
-      }
-    };
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
-
-  // 4. Buttery-smooth laggy physics loop using lerp (factor 0.14)
-  useEffect(() => {
-    const lerp = (start, end, factor) => start + (end - start) * factor;
-
-    const renderLoop = () => {
-      currentPos.current.x = lerp(currentPos.current.x, targetPos.current.x, 0.14);
-      currentPos.current.y = lerp(currentPos.current.y, targetPos.current.y, 0.14);
-
-      setCoords({
-        x: Math.round(currentPos.current.x),
-        y: Math.round(currentPos.current.y),
-      });
-
-      const curY = currentPos.current.y;
-      if (curY < 180) {
-        setBiometricStatus('OPTIC_RECOGNISED // VIT CSE');
-      } else if (curY < 360) {
-        setBiometricStatus('CORE_ENGINE // JAVA • SPRING • AWS');
-      } else {
-        setBiometricStatus('CALM_STANCE // SDE ARCHITECT');
-      }
-
-      animFrameId.current = requestAnimationFrame(renderLoop);
-    };
-
-    animFrameId.current = requestAnimationFrame(renderLoop);
-    return () => cancelAnimationFrame(animFrameId.current);
-  }, []);
-
-  const handleGlobalMouseMove = (e) => {
-    const { innerWidth, innerHeight } = window;
-    const x = (e.clientX - innerWidth / 2) / 30;
-    const y = (e.clientY - innerHeight / 2) / 30;
-    setBgOffset({ x, y });
-  };
-
+  // 5. Pointer Event Handlers
   const updateTargetFromPointer = (clientX, clientY) => {
     if (!stageRef.current) return;
     const rect = stageRef.current.getBoundingClientRect();
@@ -248,13 +282,53 @@ export default function PortfolioScanner() {
     };
   };
 
-  const handleStageMouseMove = (e) => {
+  const handlePointerEnter = () => {
+    isInteracting.current = true;
+    setIsHovered(true);
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    playScannerSound();
+  };
+
+  const handlePointerMove = (e) => {
+    isInteracting.current = true;
+    setIsHovered(true);
+    if (idleTimer.current) clearTimeout(idleTimer.current);
     updateTargetFromPointer(e.clientX, e.clientY);
   };
 
+  const handlePointerLeave = () => {
+    setIsHovered(false);
+    // Smoothly settle and return to autonomous scanning patrol after 1.2s
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    idleTimer.current = setTimeout(() => {
+      isInteracting.current = false;
+    }, 1200);
+  };
+
+  const handleTouchStart = (e) => {
+    isInteracting.current = true;
+    setIsHovered(true);
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    if (e.touches[0]) {
+      updateTargetFromPointer(e.touches[0].clientX, e.touches[0].clientY);
+    }
+    playScannerSound();
+  };
+
   const handleTouchMove = (e) => {
-    if (!e.touches[0]) return;
-    updateTargetFromPointer(e.touches[0].clientX, e.touches[0].clientY);
+    isInteracting.current = true;
+    setIsHovered(true);
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    if (e.touches[0]) {
+      updateTargetFromPointer(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handleGlobalMouseMove = (e) => {
+    const { innerWidth, innerHeight } = window;
+    const x = (e.clientX - innerWidth / 2) / 35;
+    const y = (e.clientY - innerHeight / 2) / 35;
+    setBgOffset({ x, y });
   };
 
   const handleManualColorSelect = (index) => {
@@ -269,16 +343,6 @@ export default function PortfolioScanner() {
 
   const halfAperture = apertureSize / 2;
 
-  const clipTop = Math.max(0, coords.y - halfAperture);
-  const clipBottom = Math.max(0, stageDimensions.height - (coords.y + halfAperture));
-  const clipLeft = Math.max(0, coords.x - halfAperture);
-  const clipRight = Math.max(0, stageDimensions.width - (coords.x + halfAperture));
-
-  const clipPathStyle = {
-    clipPath: `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px round 24px)`,
-    WebkitClipPath: `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px round 24px)`,
-  };
-
   return (
     <section 
       id="portfolio-scanner"
@@ -291,11 +355,11 @@ export default function PortfolioScanner() {
       {/* HEAVYWEIGHT BACKGROUND LAYER 1: Dynamic Aurora Light Orbs    */}
       {/* ============================================================ */}
       <div 
-        className="absolute top-1/4 -left-28 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full blur-[140px] opacity-45 pointer-events-none transition-all duration-1000 animate-float-slow"
+        className="absolute top-1/4 -left-28 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full blur-[140px] opacity-40 pointer-events-none transition-all duration-1000 animate-float-slow"
         style={{ backgroundColor: currentColor.accent }}
       />
       <div 
-        className="absolute bottom-1/4 -right-28 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full blur-[160px] opacity-35 pointer-events-none transition-all duration-1000 animate-pulse-glow"
+        className="absolute bottom-1/4 -right-28 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full blur-[160px] opacity-30 pointer-events-none transition-all duration-1000 animate-pulse-glow"
         style={{ backgroundColor: '#ffffff' }}
       />
 
@@ -363,7 +427,7 @@ export default function PortfolioScanner() {
         }}
       >
         {/* Left Floating Architecture Topology Node */}
-        <div className="flex flex-col gap-2 p-3.5 rounded-2xl bg-black/10 border border-black/15 backdrop-blur-sm text-black font-mono text-[10px] max-w-[210px]">
+        <div className="flex flex-col gap-2 p-3.5 rounded-2xl bg-black/10 border border-black/15 backdrop-blur-sm text-black font-mono text-[10px] max-w-[210px] shadow-sm">
           <div className="flex items-center space-x-1.5 font-bold">
             <Cpu className="w-3.5 h-3.5" />
             <span>SPRING BOOT CLUSTER</span>
@@ -378,7 +442,7 @@ export default function PortfolioScanner() {
         </div>
 
         {/* Right Floating Architecture Topology Node */}
-        <div className="flex flex-col gap-2 p-3.5 rounded-2xl bg-black/10 border border-black/15 backdrop-blur-sm text-black font-mono text-[10px] max-w-[210px]">
+        <div className="flex flex-col gap-2 p-3.5 rounded-2xl bg-black/10 border border-black/15 backdrop-blur-sm text-black font-mono text-[10px] max-w-[210px] shadow-sm">
           <div className="flex items-center space-x-1.5 font-bold">
             <Cloud className="w-3.5 h-3.5" />
             <span>AWS CLOUD INFRA</span>
@@ -394,23 +458,7 @@ export default function PortfolioScanner() {
       </div>
 
       {/* ============================================================ */}
-      {/* HEAVYWEIGHT BACKGROUND LAYER 5: 60fps Kinetic Equalizer Bars */}
-      {/* ============================================================ */}
-      <div className="absolute bottom-4 left-0 right-0 flex items-end justify-center gap-1 sm:gap-1.5 pointer-events-none z-0 h-16 opacity-30 px-6">
-        {Array.from({ length: 48 }).map((_, i) => (
-          <div 
-            key={i}
-            className="w-1 sm:w-1.5 bg-black rounded-t transition-all duration-300"
-            style={{
-              height: `${Math.sin(i * 0.4 + (coords.x / 40)) * 25 + 32}px`,
-              opacity: (i % 2 === 0 ? 0.9 : 0.6),
-            }}
-          />
-        ))}
-      </div>
-
-      {/* ============================================================ */}
-      {/* BACKGROUND LAYER 6: Interactive Cyber Matrix Canvas          */}
+      {/* HEAVYWEIGHT BACKGROUND LAYER 5: Interactive Cyber Canvas     */}
       {/* ============================================================ */}
       <canvas 
         ref={canvasRef} 
@@ -418,7 +466,7 @@ export default function PortfolioScanner() {
       />
 
       {/* ============================================================ */}
-      {/* BACKGROUND LAYER 7: 18vw "PORTFOLIO" Typography              */}
+      {/* BACKGROUND LAYER 6: 18vw "PORTFOLIO" Typography              */}
       {/* ============================================================ */}
       <div 
         ref={bgTextRef}
@@ -443,10 +491,10 @@ export default function PortfolioScanner() {
       {/* ============================================================ */}
       {/* TOP TELEMETRY HUD WITH AUTO-CYCLE BEACON                     */}
       {/* ============================================================ */}
-      <div className="relative z-20 w-full max-w-5xl flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
+      <div className="relative z-20 w-full max-w-4xl flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
         
         {/* Left: Engine & Aperture Pill */}
-        <div className="flex items-center space-x-2.5 bg-black/75 backdrop-blur-xl px-4 py-2 rounded-full border border-white/15 text-xs font-mono text-white shadow-2xl">
+        <div className="flex items-center space-x-2.5 bg-black/80 backdrop-blur-xl px-4 py-2 rounded-full border border-white/15 text-xs font-mono text-white shadow-2xl">
           <Scan className="w-4 h-4 text-blue-400 animate-spin" />
           <span className="font-bold text-yellow-400">PORTFOLIO SCANNER</span>
           <span className="text-zinc-500">|</span>
@@ -458,7 +506,7 @@ export default function PortfolioScanner() {
           onClick={toggleAutoCycle}
           onMouseEnter={playHoverSound}
           title={isAutoCycling ? 'Pause Spectrum Auto-Shift' : 'Resume Spectrum Auto-Shift'}
-          className="flex items-center space-x-2 bg-black/80 hover:bg-black backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/20 text-xs font-mono transition-all shadow-xl hover:scale-105 group"
+          className="flex items-center space-x-2 bg-black/80 hover:bg-black backdrop-blur-xl px-4 py-2 rounded-full border border-white/20 text-xs font-mono transition-all shadow-xl hover:scale-105 group"
         >
           <span className="relative flex h-2.5 w-2.5">
             {isAutoCycling && (
@@ -486,124 +534,127 @@ export default function PortfolioScanner() {
         </button>
 
         {/* Right: Coordinates & Telemetry */}
-        <div className="hidden sm:flex items-center space-x-2 bg-black/75 backdrop-blur-xl px-4 py-2 rounded-full border border-white/15 text-xs font-mono text-white shadow-2xl">
+        <div className="hidden sm:flex items-center space-x-2 bg-black/80 backdrop-blur-xl px-4 py-2 rounded-full border border-white/15 text-xs font-mono text-white shadow-2xl">
           <Compass className="w-4 h-4 text-yellow-400" />
           <span className="text-zinc-400">COORDS:</span>
-          <span className="text-blue-400 font-bold">X[{coords.x}] Y[{coords.y}]</span>
+          <span className="text-blue-400 font-bold">X[{coordsDisplay.x}] Y[{coordsDisplay.y}]</span>
           <span className="text-zinc-500">|</span>
           <span className="text-emerald-400 font-semibold">{biometricStatus}</span>
         </div>
       </div>
 
       {/* ============================================================ */}
-      {/* MAIN SCANNER STAGE CONTAINER                                 */}
+      {/* MAIN SCANNER STAGE CONTAINER (Precision Optical Viewport)     */}
       {/* ============================================================ */}
       <div 
         ref={stageRef}
-        onMouseMove={handleStageMouseMove}
+        onMouseEnter={handlePointerEnter}
+        onMouseMove={handlePointerMove}
+        onMouseLeave={handlePointerLeave}
+        onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        onTouchStart={() => { setIsHovered(true); playScannerSound(); }}
-        onMouseEnter={() => { setIsHovered(true); playScannerSound(); }}
-        onMouseLeave={() => setIsHovered(false)}
-        className="relative z-10 w-[300px] sm:w-[420px] h-[450px] sm:h-[560px] rounded-3xl overflow-hidden shadow-[0_30px_70px_-15px_rgba(0,0,0,0.8)] border-2 border-black/30 bg-zinc-950 cursor-crosshair group transition-transform duration-300 hover:scale-[1.01]"
+        onTouchEnd={handlePointerLeave}
+        className="relative z-10 w-[300px] sm:w-[420px] h-[450px] sm:h-[560px] rounded-3xl overflow-hidden shadow-[0_30px_70px_-15px_rgba(0,0,0,0.85)] border-2 border-black/30 bg-zinc-950 cursor-crosshair group touch-none select-none"
       >
         {/* ============================================================ */}
-        {/* LAYER 1: BASE LAYER (Heavily Blurred, Dimmed, Frosted Glass) */}
+        {/* LAYER 1: BASE LAYER (Atmospheric 8px Gaussian Blur & Overlay) */}
         {/* ============================================================ */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img 
             src={personalInfo.images.topAngle} 
-            alt="Manan Mahajan Blurred Target" 
-            className="w-full h-full object-cover filter blur-[9px] brightness-75 contrast-125 transition-all duration-300"
+            alt="Manan Mahajan Target" 
+            className="w-full h-full object-cover filter blur-[8px] brightness-[0.78] contrast-125 select-none"
           />
           {/* Frosted Blueprint Scanline Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-          {/* Idle Scanning Instructions when cursor is not active */}
-          {!isHovered && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
-              <div className="p-4 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-yellow-400 animate-bounce mb-3 shadow-lg">
-                <Crosshair className="w-8 h-8" />
-              </div>
-              <p className="text-xs font-mono uppercase tracking-widest text-yellow-400 font-bold bg-black/80 px-3.5 py-1 rounded-full mb-1">
-                Move Cursor Over Frame to Scan
-              </p>
-              <p className="text-xs text-zinc-300 font-sans max-w-xs">
-                The 280px high-tech lens will pierce through the blur to inspect photographic details
-              </p>
-            </div>
-          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
         </div>
 
         {/* ============================================================ */}
-        {/* LAYER 2: SHARP REVEAL LAYER (Dynamic clipPath follow lens)    */}
+        {/* LAYER 2: THE MOVING APERTURE LENS BOX (GPU-Translated)       */}
         {/* ============================================================ */}
         <div 
-          style={clipPathStyle}
-          className="absolute inset-0 z-10 overflow-hidden pointer-events-none transition-all duration-75"
-        >
-          <img 
-            src={personalInfo.images.topAngle} 
-            alt="Manan Mahajan Sharp Reveal" 
-            className="w-full h-full object-cover filter brightness-105 contrast-110"
-          />
-
-          {/* Mode-specific filters */}
-          {activeMode === 'cyber' && (
-            <div className="absolute inset-0 bg-blue-500/15 mix-blend-color-dodge pointer-events-none" />
-          )}
-
-          {activeMode === 'biometric' && (
-            <div className="absolute inset-0 bg-emerald-500/10 mix-blend-overlay pointer-events-none" />
-          )}
-
-          {/* Precision Scan Grid inside the active lens */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.15)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
-        </div>
-
-        {/* ============================================================ */}
-        {/* LAYER 3: MARCHING ANTS FRAME & CORNER BRACKETS HUD           */}
-        {/* ============================================================ */}
-        <div 
-          className="absolute z-20 pointer-events-none transition-opacity duration-200"
+          ref={lensRef}
+          className="absolute top-0 left-0 z-10 pointer-events-none rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(59,130,246,0.25)] will-change-transform"
           style={{
             width: `${apertureSize}px`,
             height: `${apertureSize}px`,
-            left: `${coords.x - halfAperture}px`,
-            top: `${coords.y - halfAperture}px`,
-            opacity: isHovered ? 1 : 0.45,
+            transform: `translate3d(70px, 140px, 0)`,
           }}
         >
-          {/* Animated Marching Ants Border */}
-          <div className="absolute inset-0 rounded-3xl marching-ants-border shadow-[0_0_35px_rgba(59,130,246,0.6)]" />
+          {/* The Sharp Reveal Image (Counter-translated to align 1:1 with base image) */}
+          <div 
+            ref={innerImgRef}
+            className="absolute top-0 left-0 pointer-events-none will-change-transform"
+            style={{
+              width: `${stageSize.width}px`,
+              height: `${stageSize.height}px`,
+              transform: `translate3d(-70px, -140px, 0)`,
+            }}
+          >
+            <img 
+              src={personalInfo.images.topAngle} 
+              alt="Manan Mahajan Sharp Reveal" 
+              className="w-full h-full object-cover filter brightness-105 contrast-110 select-none max-w-none"
+            />
+          </div>
+
+          {/* Mode-Specific Optical HUD Filters */}
+          {activeMode === 'cyber' && (
+            <>
+              <div className="absolute inset-0 bg-blue-500/15 mix-blend-color-dodge pointer-events-none" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,0.2)_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
+            </>
+          )}
+
+          {activeMode === 'biometric' && (
+            <>
+              <div className="absolute inset-0 bg-emerald-500/12 mix-blend-overlay pointer-events-none" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.18)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+            </>
+          )}
+
+          {/* Animated Marching Ants Border around the lens */}
+          <div className="absolute inset-0 rounded-3xl marching-ants-border pointer-events-none shadow-[0_0_25px_rgba(59,130,246,0.6)]" />
 
           {/* 4 Precision Corner Brackets */}
-          <div className="absolute -top-2 -left-2 w-6 h-6 border-t-2 border-l-2 border-blue-400" />
-          <div className="absolute -top-2 -right-2 w-6 h-6 border-t-2 border-r-2 border-blue-400" />
-          <div className="absolute -bottom-2 -left-2 w-6 h-6 border-b-2 border-l-2 border-blue-400" />
-          <div className="absolute -bottom-2 -right-2 w-6 h-6 border-b-2 border-r-2 border-blue-400" />
+          <div className="absolute top-1 left-1 w-5 h-5 border-t-2 border-l-2 border-blue-400 pointer-events-none" />
+          <div className="absolute top-1 right-1 w-5 h-5 border-t-2 border-r-2 border-blue-400 pointer-events-none" />
+          <div className="absolute bottom-1 left-1 w-5 h-5 border-b-2 border-l-2 border-blue-400 pointer-events-none" />
+          <div className="absolute bottom-1 right-1 w-5 h-5 border-b-2 border-r-2 border-blue-400 pointer-events-none" />
 
-          {/* Center Target Reticle */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          {/* Center Target Reticle Crosshair */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-8 h-8 border border-blue-400/40 rounded-full flex items-center justify-center">
               <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" />
             </div>
+            <div className="absolute w-12 h-[1px] bg-blue-400/35" />
+            <div className="absolute h-12 w-[1px] bg-blue-400/35" />
           </div>
 
           {/* Top Aperture Status Tag */}
-          <div className="absolute top-2 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-blue-200 bg-black/80 px-2 py-0.5 rounded-md backdrop-blur-sm border border-blue-400/30">
+          <div className="absolute top-2 left-2.5 right-2.5 flex justify-between items-center text-[9px] sm:text-[10px] font-mono text-blue-200 bg-black/85 px-2 py-0.5 rounded-md backdrop-blur-sm border border-blue-400/30 pointer-events-none">
             <span className="font-bold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              LENS: 100% SHARP
+              {isHovered ? 'MANUAL LOCK' : 'AUTO-DIAGNOSTIC'}
             </span>
             <span className="text-yellow-400 uppercase font-bold">{activeMode}</span>
           </div>
 
-          {/* Bottom Aperture Metadata */}
-          <div className="absolute bottom-2 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-zinc-300 bg-black/80 px-2 py-0.5 rounded-md backdrop-blur-sm border border-white/10">
-            <span>MAG: 1.05X</span>
-            <span className="text-blue-400 font-bold truncate max-w-[120px]">{biometricStatus}</span>
+          {/* Bottom Aperture Metadata Tag */}
+          <div className="absolute bottom-2 left-2.5 right-2.5 flex justify-between items-center text-[9px] sm:text-[10px] font-mono text-zinc-300 bg-black/85 px-2 py-0.5 rounded-md backdrop-blur-sm border border-white/10 pointer-events-none">
+            <span className="text-zinc-400">APERTURE: {apertureSize}PX</span>
+            <span className="text-blue-400 font-bold truncate max-w-[130px]">{biometricStatus}</span>
+          </div>
+        </div>
+
+        {/* Bottom Interactive Hover Prompt Pill */}
+        <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-20 transition-opacity duration-300 pointer-events-none ${
+          isHovered ? 'opacity-0' : 'opacity-90'
+        }`}>
+          <div className="flex items-center space-x-1.5 bg-black/85 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-[10px] font-mono text-yellow-400 shadow-xl">
+            <ShieldCheck className="w-3 h-3 text-emerald-400 animate-pulse" />
+            <span>TOUCH OR HOVER TO CONTROL LENS</span>
           </div>
         </div>
 
@@ -615,7 +666,7 @@ export default function PortfolioScanner() {
       <div className="relative z-20 mt-8 flex flex-col items-center gap-4 max-w-2xl w-full">
         
         {/* Controls Toolbar */}
-        <div className="flex flex-wrap items-center justify-center gap-3 p-2.5 rounded-2xl bg-black/75 backdrop-blur-2xl border border-white/15 shadow-2xl">
+        <div className="flex flex-wrap items-center justify-center gap-3 p-2.5 rounded-2xl bg-black/80 backdrop-blur-2xl border border-white/15 shadow-2xl">
           
           {/* Scan Mode Switchers */}
           <div className="flex items-center gap-1.5 bg-zinc-900/90 p-1 rounded-xl border border-white/10">
@@ -644,7 +695,7 @@ export default function PortfolioScanner() {
           {/* Aperture Size Switchers */}
           <div className="flex items-center gap-1.5 bg-zinc-900/90 px-3 py-1 rounded-xl border border-white/10 text-xs font-mono text-zinc-300">
             <span className="text-zinc-500 font-bold uppercase text-[10px]">Aperture:</span>
-            {[220, 280, 340].map((size) => (
+            {[200, 260, 320].map((size) => (
               <button
                 key={size}
                 onClick={() => { playClickSound(); setApertureSize(size); }}
@@ -662,15 +713,15 @@ export default function PortfolioScanner() {
 
         </div>
 
-        {/* Color Spectrum Theme Switcher with Auto-Cycle Progress Indicator */}
+        {/* Color Spectrum Theme Switcher with Active Progress Indicator */}
         <div className="flex flex-col items-center gap-2">
           <div className="flex items-center gap-2">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-black/80 font-bold bg-white/40 px-3.5 py-0.5 rounded-full backdrop-blur-md">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-black/80 font-bold bg-white/40 px-3.5 py-0.5 rounded-full backdrop-blur-md shadow-sm">
               Spectrum Theme // {currentColor.label} ({currentColor.wavelength})
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 p-2 rounded-full bg-black/75 backdrop-blur-xl border border-white/20 shadow-2xl">
+          <div className="flex items-center gap-2.5 p-2 rounded-full bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl">
             {PALETTE.map((p, idx) => {
               const isSelected = colorIndex === idx;
               return (
