@@ -66,17 +66,17 @@ export const technicalSkills = [
 
 export const projects = [
   {
-    id: "sheet-pilot",
-    title: "Sheet-Pilot",
-    category: "Data Workspace & Formula Engine",
-    tag: "TypeScript • Canvas • AST",
-    accentColor: "#10b981",
-    summary: "High-performance tabular data workspace with PR-style cell diffing, AST-based Excel formula engine, automated data sanitization, and living .xlsx export.",
-    description: "Engineered a 100% local-first high-performance tabular data workspace. Implemented an AST-based Excel formula evaluation engine, PR-style cell-level diffing, automated data sanitization algorithms, and living .xlsx export capabilities with zero external server dependency.",
-    tech: ["TypeScript", "React", "HTML5 Canvas", "AST Parser", "Excel Engine", "Local-First"],
-    highlight: "100% Local-First Engine with AST-Based Excel Formula Parsing & Cell Diffing",
-    github: "https://github.com/Manan482/Sheet-Pilot",
-    live: "https://github.com/Manan482/Sheet-Pilot"
+    id: "delta-grid",
+    title: "DeltaGrid Studio",
+    category: "Data Workspace & Compiler Engine",
+    tag: "TypeScript • React 19 • AST • DAG",
+    accentColor: "#3b82f6",
+    summary: "High-performance spreadsheet workspace featuring Git-style cell-level visual diffing, AST-based Excel formula engine with topological DAG dependency resolution, and living .xlsx export. 100% local-first.",
+    description: "Engineered a high-performance, 100% local-first spreadsheet workspace with Git-style visual cell diffing and scenario branching. Built a zero-eval recursive-descent AST formula parser, topological DAG dependency evaluator for reactive recalculation, virtualized grid rendering for 100k+ cells, and deterministic .xlsx export.",
+    tech: ["TypeScript 5.7", "React 19", "AST Parser", "DAG Engine", "Virtualized Grid", "Excel .xlsx", "Local-First"],
+    highlight: "AST-Based Formula Engine, Topological DAG Dependency Resolution & 100k+ Cell Virtual Grid",
+    github: "https://github.com/Manan482/Delta-Grid",
+    live: "https://github.com/Manan482/Delta-Grid"
   },
   {
     id: "customer-churn-ai",
